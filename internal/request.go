@@ -11,6 +11,7 @@ import (
 )
 
 type Request struct {
+	Name    string
 	Method  string
 	Url     string
 	Headers map[string][]string
@@ -60,7 +61,7 @@ func (r *Request) Execute() (*Response, error) {
 	}
 
 	params := r.Params.GetParams()
-	fullUrl := GenerateUrl(r.Url, params)
+	fullUrl := generateUrl(r.Url, params)
 
 	req, err := http.NewRequest(r.Method, fullUrl, r.Body.GetBody())
 	if err != nil {
@@ -131,6 +132,9 @@ func (b *Body) GetHeaders() map[string]string {
 }
 
 func (p *Params) GetParams() *url.Values {
+	if len(p.Values) == 0 {
+		return nil
+	}
 	form := url.Values{}
 	for key, values := range p.Values {
 		for _, value := range values {
@@ -141,9 +145,19 @@ func (p *Params) GetParams() *url.Values {
 	return &form
 }
 
-func GenerateUrl(url string, p *url.Values) string {
+func generateUrl(url string, p *url.Values) string {
 	if p == nil {
 		return url
 	}
 	return url + "?" + p.Encode()
+}
+
+func GetRequest(name string, reqs []Request) (*Request, error) {
+	for _, r := range reqs {
+		if r.Name == name {
+			return &r, nil
+		}
+	}
+
+	return nil, errors.New("no request found")
 }
