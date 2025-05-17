@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"gotem/internal"
-	"gotem/internal/config"
-	"gotem/internal/file"
+	"github.com/wvan1901/Gotem/internal"
+	"github.com/wvan1901/Gotem/internal/config"
+	"github.com/wvan1901/Gotem/internal/file"
 	"io"
 	"os"
 )
