@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gotem/internal"
 	"gotem/internal/config"
+	"gotem/internal/file"
 	"io"
 	"os"
 )
@@ -22,24 +23,35 @@ func run(w io.Writer, args []string) error {
 	}
 
 	// Get Config File
-	reqsFile, err := internal.GetJsonFile(flags.File)
+	reqsFile, err := file.GetConfigFile(flags.File)
 	if err != nil {
 		return err
 	}
 
-	// Get requests info
-	userReq, err := internal.ParseJsonInput(reqsFile)
+	// Get Requests Info
+	userReqs, err := internal.ParseJsonInput(reqsFile)
 	if err != nil {
 		return err
 	}
-	reqs := internal.ConvertInputsToReqs(userReq)
+
+	// List Request
+	if flags.ListRequests {
+		list := internal.ListRequests(userReqs)
+		_, err = w.Write([]byte(list))
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 
 	// Get Request
+	reqs := internal.ConvertInputsToReqs(userReqs)
 	req, err := internal.GetRequest(flags.RequestName, reqs)
 	if err != nil {
 		return err
 	}
-	// Make a request
+
+	// Make A Request
 	res, err := req.Execute()
 	if err != nil {
 		return err
@@ -51,7 +63,7 @@ func run(w io.Writer, args []string) error {
 		return err
 	}
 
-	// Output request to stdout
+	// Output request
 	_, err = w.Write([]byte(resString + "\n"))
 	if err != nil {
 		return err

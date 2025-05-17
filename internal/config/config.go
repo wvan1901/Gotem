@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 )
@@ -11,15 +10,17 @@ const (
 )
 
 type Flag struct {
-	File        string
-	RequestName string
+	File         string
+	RequestName  string
+	ListRequests bool
 }
 
 func InitFlags(args []string) (Flag, error) {
 	fs := flag.NewFlagSet("gotem", flag.ContinueOnError)
 
-	fileName := fs.String("f", DEFAULT_FILE, "config file name")
+	fileName := fs.String("f", DEFAULT_FILE, "config file path")
 	reqName := fs.String("req-name", "", "API request name to execute")
+	listReq := fs.Bool("ls", false, "Display requests available")
 
 	err := fs.Parse(args)
 	if err != nil {
@@ -27,27 +28,14 @@ func InitFlags(args []string) (Flag, error) {
 	}
 
 	newFlags := Flag{
-		File:        *fileName,
-		RequestName: *reqName,
+		File:         *fileName,
+		RequestName:  *reqName,
+		ListRequests: *listReq,
 	}
 
-	err = newFlags.IsValid()
-	if err != nil {
-		return Flag{}, fmt.Errorf("InitFlags: validate: %w", err)
-	}
 	return newFlags, nil
 }
 
-func (f *Flag) IsValid() error {
-	if f.File == "" {
-		return errors.New("file name can't be empty")
-	}
-	if f.RequestName == "" {
-		return errors.New("request name can't be empty")
-	}
-	return nil
-}
-
 // NOTE: Idea for flags
-// ls: list all the requests with a description
 // in: request as input, (uses no config file)
+// url, header: flags to override config file requests
