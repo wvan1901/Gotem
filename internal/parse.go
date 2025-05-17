@@ -8,12 +8,13 @@ import (
 )
 
 type UserRequest struct {
-	Name       string          `json:"name"`
-	HttpMethod string          `json:"method"`
-	Url        string          `json:"url"`
-	Headers    []keyWithValues `json:"headers,omitempty"`
-	Body       bodyInput       `json:"body"`
-	Params     []keyWithValues `json:"parmeters,omitempty"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	HttpMethod  string          `json:"method"`
+	Url         string          `json:"url"`
+	Headers     []keyWithValues `json:"headers,omitempty"`
+	Body        bodyInput       `json:"body"`
+	Params      []keyWithValues `json:"parmeters,omitempty"`
 }
 
 type bodyInput struct {
@@ -33,8 +34,8 @@ type UserResponse struct {
 	Body       string `json:"body"`
 }
 
-func GetJsonFile(filename string) ([]byte, error) {
-	file, err := os.Open(filename)
+func GetJsonFile(filepath string) ([]byte, error) {
+	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("GetJsonFile: os: %w", err)
 	}

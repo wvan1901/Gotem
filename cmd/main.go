@@ -20,10 +20,6 @@ func run(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = flags.IsValid()
-	if err != nil {
-		return err
-	}
 
 	// Get Config File
 	reqsFile, err := internal.GetJsonFile(flags.File)

@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"flag"
+	"fmt"
 )
 
 const (
@@ -22,13 +23,19 @@ func InitFlags(args []string) (Flag, error) {
 
 	err := fs.Parse(args)
 	if err != nil {
-		return Flag{}, nil
+		return Flag{}, fmt.Errorf("InitFlags: parse: %w", err)
 	}
 
-	return Flag{
+	newFlags := Flag{
 		File:        *fileName,
 		RequestName: *reqName,
-	}, nil
+	}
+
+	err = newFlags.IsValid()
+	if err != nil {
+		return Flag{}, fmt.Errorf("InitFlags: validate: %w", err)
+	}
+	return newFlags, nil
 }
 
 func (f *Flag) IsValid() error {
@@ -40,3 +47,7 @@ func (f *Flag) IsValid() error {
 	}
 	return nil
 }
+
+// NOTE: Idea for flags
+// ls: list all the requests with a description
+// in: request as input, (uses no config file)
