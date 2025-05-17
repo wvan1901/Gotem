@@ -13,19 +13,34 @@ func TestMethodRequests(t *testing.T) {
 		switch r.Method {
 		case http.MethodGet:
 			w.WriteHeader(200)
-			w.Write([]byte("get"))
+			_, err := w.Write([]byte("get"))
+			if err != nil {
+				t.Errorf("unexpected handler err: %s", err.Error())
+			}
 		case http.MethodPost:
 			w.WriteHeader(200)
-			w.Write([]byte("post"))
+			_, err := w.Write([]byte("post"))
+			if err != nil {
+				t.Errorf("unexpected handler err: %s", err.Error())
+			}
 		case http.MethodDelete:
 			w.WriteHeader(200)
-			w.Write([]byte("delete"))
+			_, err := w.Write([]byte("delete"))
+			if err != nil {
+				t.Errorf("unexpected handler err: %s", err.Error())
+			}
 		case http.MethodPut:
 			w.WriteHeader(200)
-			w.Write([]byte("put"))
+			_, err := w.Write([]byte("put"))
+			if err != nil {
+				t.Errorf("unexpected handler err: %s", err.Error())
+			}
 		case http.MethodOptions:
 			w.WriteHeader(200)
-			w.Write([]byte("options"))
+			_, err := w.Write([]byte("options"))
+			if err != nil {
+				t.Errorf("unexpected handler err: %s", err.Error())
+			}
 		default:
 			w.WriteHeader(500)
 		}
@@ -70,7 +85,10 @@ func TestHeaderRequests(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerStr := fmt.Sprint(r.Header.Values("key"))
 		w.WriteHeader(200)
-		w.Write([]byte(headerStr))
+		_, err := w.Write([]byte(headerStr))
+		if err != nil {
+			t.Errorf("unexpected handler err: %s", err.Error())
+		}
 	})
 
 	server := httptest.NewServer(handler)
@@ -111,7 +129,10 @@ func TestParamRequests(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		paramStr := fmt.Sprint(r.URL.Query())
 		w.WriteHeader(200)
-		w.Write([]byte(paramStr))
+		_, err := w.Write([]byte(paramStr))
+		if err != nil {
+			t.Errorf("unexpected handler err: %s", err.Error())
+		}
 	})
 
 	server := httptest.NewServer(handler)

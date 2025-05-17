@@ -14,18 +14,21 @@ type Flag struct {
 	RequestName string
 }
 
-func InitFlags(args []string) Flag {
+func InitFlags(args []string) (Flag, error) {
 	fs := flag.NewFlagSet("gotem", flag.ContinueOnError)
 
 	fileName := fs.String("f", DEFAULT_FILE, "config file name")
 	reqName := fs.String("req-name", "", "API request name to execute")
 
-	fs.Parse(args)
+	err := fs.Parse(args)
+	if err != nil {
+		return Flag{}, nil
+	}
 
 	return Flag{
 		File:        *fileName,
 		RequestName: *reqName,
-	}
+	}, nil
 }
 
 func (f *Flag) IsValid() error {

@@ -16,8 +16,11 @@ func main() {
 }
 
 func run(w io.Writer, args []string) error {
-	flags := config.InitFlags(args)
-	err := flags.IsValid()
+	flags, err := config.InitFlags(args)
+	if err != nil {
+		return err
+	}
+	err = flags.IsValid()
 	if err != nil {
 		return err
 	}
@@ -45,12 +48,18 @@ func run(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Wicho: res", res.StatusCode, string(res.Body), req.Name)
 
 	userRes := internal.ConvertResponse(*res)
-	output := fmt.Sprint("", userRes)
+	resString, err := userRes.JsonString()
+	if err != nil {
+		return err
+	}
+
 	// Output request to stdout
-	w.Write([]byte(string(output) + "\n"))
+	_, err = w.Write([]byte(resString + "\n"))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

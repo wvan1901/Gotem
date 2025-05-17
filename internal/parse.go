@@ -38,7 +38,13 @@ func GetJsonFile(filename string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetJsonFile: os: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			// TODO: Write to stderr
+			fmt.Println(err)
+		}
+	}()
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
@@ -52,7 +58,6 @@ func ParseJsonInput(file []byte) ([]UserRequest, error) {
 	var newReq []UserRequest
 	err := json.Unmarshal(file, &newReq)
 	if err != nil {
-		fmt.Println("Wicho: err:", err)
 		return newReq, fmt.Errorf("ParseJsonInput: unmarshal: %w", err)
 	}
 
@@ -106,3 +111,10 @@ func ConvertResponse(r Response) UserResponse {
 	}
 }
 
+func (u *UserResponse) JsonString() (string, error) {
+	jsonBytes, err := json.Marshal(u)
+	if err != nil {
+		return "", fmt.Errorf("JsonString: %w", err)
+	}
+	return string(jsonBytes), nil
+}
