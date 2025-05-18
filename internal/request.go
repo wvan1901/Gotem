@@ -96,6 +96,24 @@ func (r *Request) Execute() (*Response, error) {
 	return &resp, nil
 }
 
+func (r *Request) AddHeaders(nh map[string][]string) {
+	if r == nil {
+		return
+	}
+	if r.Headers == nil {
+		r.Headers = nh
+		return
+	}
+	for k, v := range nh {
+		val, ok := r.Headers[k]
+		if !ok {
+			r.Headers[k] = v
+		} else {
+			r.Headers[k] = append(val, v...)
+		}
+	}
+}
+
 func (b *Body) GetBody() io.Reader {
 	switch b.Type {
 	case "", "none":

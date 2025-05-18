@@ -51,10 +51,11 @@ func run(w io.Writer, args []string) error {
 		return err
 	}
 
-	// Override
+	// Override/Add Info
 	if flags.OverrideUrl != "" {
 		req.Url = flags.OverrideUrl
 	}
+	req.AddHeaders(flags.ExtraHeaders)
 
 	// Make A Request
 	res, err := req.Execute()
