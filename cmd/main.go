@@ -51,6 +51,11 @@ func run(w io.Writer, args []string) error {
 		return err
 	}
 
+	// Override
+	if flags.OverrideUrl != "" {
+		req.Url = flags.OverrideUrl
+	}
+
 	// Make A Request
 	res, err := req.Execute()
 	if err != nil {

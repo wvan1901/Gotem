@@ -2,7 +2,7 @@ package internal_test
 
 import (
 	"fmt"
-	"gotem/internal"
+	"github.com/wvan1901/Gotem/internal"
 	"net/http"
 	"net/http/httptest"
 	"testing"

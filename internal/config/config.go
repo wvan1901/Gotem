@@ -12,14 +12,16 @@ const (
 type Flag struct {
 	File         string
 	RequestName  string
+	OverrideUrl  string
 	ListRequests bool
 }
 
 func InitFlags(args []string) (Flag, error) {
 	fs := flag.NewFlagSet("gotem", flag.ContinueOnError)
 
-	fileName := fs.String("f", DEFAULT_FILE, "config file path")
+	fileName := fs.String("f", DEFAULT_FILE, "Config file path")
 	reqName := fs.String("req-name", "", "API request name to execute")
+	ovrUrl := fs.String("url", "", "Overrides config url")
 	listReq := fs.Bool("ls", false, "Display requests available")
 
 	err := fs.Parse(args)
@@ -30,6 +32,7 @@ func InitFlags(args []string) (Flag, error) {
 	newFlags := Flag{
 		File:         *fileName,
 		RequestName:  *reqName,
+		OverrideUrl:  *ovrUrl,
 		ListRequests: *listReq,
 	}
 
@@ -38,4 +41,4 @@ func InitFlags(args []string) (Flag, error) {
 
 // NOTE: Idea for flags
 // in: request as input, (uses no config file)
-// url, header: flags to override config file requests
+// header: flags to override config file requests
