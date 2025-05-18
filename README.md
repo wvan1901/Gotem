@@ -2,8 +2,9 @@
 This is a cli tool that makes HTTP request.
 
 # Table of contents
-[How to use](#how-to-use)
-[FAQ](#faq)
+- [How To Use](#how-to-use)
+- [How To Install](#how-to-install)
+- [FAQ](#faq)
 
 # How to use
 This tool works by receiving a json config file that conatins multiple http requests.
@@ -50,13 +51,22 @@ Sometimes you'd like to see all requests inside your config. To achieve this use
 This flag will print a summary of all the requests in a friendly format.
 `NOTE:` This flag will not make a http request. This interrupts the regular program flow.
 
+# How to install
+Run this command to install
+```bash
+go get github.com/wvan1901/Gotem
+go install github.com/wvan1901/Gotem
+```
+
 # FAQ
 *How is this better than a, b, ... z tool?*\
 Its not, this project is meant to suit my needs. Those tools are great and offers solutions to issues many people have.
 I haven't found a tool that feels good to use with my development set up. This is why I made this.\
+\
 *Why do we need a config file?*\
 Memorizing 100 requests is impossible for me, so I need to store then them in some format. This tool currently isn't meant for
 creating a http request without a config file. Other great tools already exsist that handle this pretty well (curl, httpie, ... etc).\
+\
 *Why is the config and output JSON?*\
 Its a preference since I like to use jq for some of my tasks. Having json as the output helps me quickly get the infomation I need and allows
 me to use the output with other tools.
