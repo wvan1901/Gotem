@@ -172,6 +172,9 @@ func generateUrl(url string, p *url.Values) string {
 
 func GetRequest(name string, reqs []Request) (*Request, error) {
 	if name == "" {
+		if len(reqs) == 1 {
+			return &reqs[0], nil
+		}
 		return nil, errors.New("GetRequest: name is empty")
 	}
 	for _, r := range reqs {
