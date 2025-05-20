@@ -45,7 +45,10 @@ func run(w io.Writer, args []string) error {
 	}
 
 	// Get Request
-	reqs := internal.ConvertInputsToReqs(userReqs)
+	reqs, err := internal.ConvertInputsToReqs(userReqs)
+	if err != nil {
+		return err
+	}
 	req, err := internal.GetRequest(flags.RequestName, reqs)
 	if err != nil {
 		return err

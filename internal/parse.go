@@ -2,6 +2,7 @@ package internal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -21,6 +22,7 @@ type bodyInput struct {
 	FormData []keyWithValues `json:"data,omitempty"`
 	Raw      string          `json:"raw,omitempty"`
 	Binary   []byte          `json:"binary,omitempty"` //This is base64 encoded string
+	Json     any             `json:"json,omitempty"`
 }
 
 type keyWithValues struct {
@@ -43,18 +45,26 @@ func ParseJsonInput(file []byte) ([]UserRequest, error) {
 	return newReq, nil
 }
 
-func ConvertInputsToReqs(reqs []UserRequest) []Request {
+func ConvertInputsToReqs(reqs []UserRequest) ([]Request, error) {
 	if len(reqs) == 0 {
-		return nil
+		return nil, errors.New("no requests provided")
 	}
 	newRequest := []Request{}
 	for _, r := range reqs {
-		newRequest = append(newRequest, convertInputToReq(r))
+		conv, err := convertInputToReq(r)
+		if err != nil {
+			return nil, fmt.Errorf("ConvertInputsToReqs: %w", err)
+		}
+		newRequest = append(newRequest, *conv)
 	}
-	return newRequest
+	return newRequest, nil
 }
-func convertInputToReq(userReq UserRequest) Request {
-	return Request{
+func convertInputToReq(userReq UserRequest) (*Request, error) {
+	jsonBody, err := json.Marshal(userReq.Body.Json)
+	if err != nil {
+		return nil, fmt.Errorf("convertInputToReq: error marshaling json field: %w", err)
+	}
+	return &Request{
 		Name:    userReq.Name,
 		Method:  userReq.HttpMethod,
 		Url:     userReq.Url,
@@ -64,11 +74,12 @@ func convertInputToReq(userReq UserRequest) Request {
 			FormData: convertMapStrings(userReq.Body.FormData),
 			Raw:      userReq.Body.Raw,
 			Binary:   userReq.Body.Binary,
+			JsonData: jsonBody,
 		},
 		Params: Params{
 			Values: convertMapStrings(userReq.Params),
 		},
-	}
+	}, nil
 }
 
 func convertMapStrings(in []keyWithValues) map[string][]string {

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -20,10 +21,11 @@ type Request struct {
 }
 
 type Body struct {
-	Type     string // Opts: none, form-data, x-www-form-urlencoded, raw, binary
+	Type     string // Opts: none, form-data, x-www-form-urlencoded, raw, binary, json
 	FormData map[string][]string
 	Raw      string
 	Binary   []byte
+	JsonData []byte
 }
 
 type Params struct {
@@ -129,8 +131,9 @@ func (b *Body) GetBody() io.Reader {
 	case "raw":
 		return strings.NewReader(b.Raw)
 	case "binary":
-		//return bytes.NewReader(b.Binary)
 		return nil
+	case "json":
+		return bytes.NewBuffer(b.JsonData)
 	default:
 		return nil
 	}
@@ -144,6 +147,8 @@ func (b *Body) GetHeaders() map[string]string {
 		return map[string]string{"Content-Type": "multipart/form-data"}
 	case "x-www-form-urlencoded":
 		return map[string]string{"Content-Type": "application/x-www-form-urlencoded"}
+	case "json":
+		return map[string]string{"Content-Type": "application/json"}
 	default:
 		return nil
 	}
