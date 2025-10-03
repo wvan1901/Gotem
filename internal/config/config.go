@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DEFAULT_FILE = "gotem.config.json"
+	DEFAULT_FILE = "gotem.gohttp"
 )
 
 type Flag struct {

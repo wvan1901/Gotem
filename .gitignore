@@ -3,6 +3,8 @@
 
 # Config files
 *.config.json
+*.http
+*.gohttp
 
 # Other
 data/

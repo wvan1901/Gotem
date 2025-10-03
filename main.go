@@ -1,12 +1,16 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
+	"flag"
 	"fmt"
-	"github.com/wvan1901/Gotem/internal"
-	"github.com/wvan1901/Gotem/internal/config"
-	"github.com/wvan1901/Gotem/internal/file"
 	"io"
 	"os"
+
+	"github.com/wvan1901/Gotem/internal/cli"
+	"github.com/wvan1901/Gotem/internal/config"
+	"github.com/wvan1901/Gotem/internal/file"
 )
 
 func main() {
@@ -19,6 +23,9 @@ func main() {
 func run(w io.Writer, args []string) error {
 	flags, err := config.InitFlags(args)
 	if err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
 		return err
 	}
 
@@ -28,15 +35,15 @@ func run(w io.Writer, args []string) error {
 		return err
 	}
 
-	// Get Requests Info
-	userReqs, err := internal.ParseJsonInput(reqsFile)
+	// Get Program Info aka Requests
+	prog, err := cli.ParseInputIntoProgram(string(reqsFile))
 	if err != nil {
 		return err
 	}
 
 	// List Request
 	if flags.ListRequests {
-		list := internal.ListRequests(userReqs)
+		list := cli.ListAstRequests(prog.Requests)
 		_, err = w.Write([]byte(list))
 		if err != nil {
 			return err
@@ -44,12 +51,8 @@ func run(w io.Writer, args []string) error {
 		return nil
 	}
 
-	// Get Request
-	reqs, err := internal.ConvertInputsToReqs(userReqs)
-	if err != nil {
-		return err
-	}
-	req, err := internal.GetRequest(flags.RequestName, reqs)
+	// Get single request
+	req, err := cli.GetAstRequest(flags.RequestName, prog.Requests)
 	if err != nil {
 		return err
 	}
@@ -58,22 +61,21 @@ func run(w io.Writer, args []string) error {
 	if flags.OverrideUrl != "" {
 		req.Url = flags.OverrideUrl
 	}
-	req.AddHeaders(flags.ExtraHeaders)
 
-	// Make A Request
-	res, err := req.Execute()
+	// Make a request
+	resp, err := cli.MakeRequest(req, flags.ExtraHeaders)
 	if err != nil {
 		return err
 	}
 
-	userRes := internal.ConvertResponse(*res)
-	resString, err := userRes.JsonString()
+	// Turn resp into a json string
+	respJsonBytes, err := json.Marshal(resp)
 	if err != nil {
 		return err
 	}
 
 	// Output request
-	_, err = w.Write([]byte(resString + "\n"))
+	_, err = w.Write(append(respJsonBytes, '\n'))
 	if err != nil {
 		return err
 	}

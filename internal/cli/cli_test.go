@@ -1,11 +1,13 @@
-package internal_test
+package cli_test
 
 import (
 	"fmt"
-	"github.com/wvan1901/Gotem/internal"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/wvan1901/Gotem/internal/cli"
+	"github.com/wvan1901/Gotem/internal/gohttp/ast"
 )
 
 func TestMethodRequests(t *testing.T) {
@@ -63,13 +65,13 @@ func TestMethodRequests(t *testing.T) {
 	expectedStatus := 200
 
 	for _, tt := range tests {
-		req := internal.Request{
-			Method: tt.reqMethod,
-			Url:    server.URL,
+		ur := &ast.UserRequest{
+			HttpMethod: tt.reqMethod,
+			Url:        server.URL,
 		}
-		resp, err := req.Execute()
+		resp, err := cli.MakeRequest(ur, nil)
 		if err != nil {
-			t.Errorf("unexpected err, err: %s", err.Error())
+			t.Fatalf("unexpected err, err: %s", err.Error())
 		}
 		if resp.StatusCode != expectedStatus {
 			t.Errorf("Status: got %q, want %q", resp.StatusCode, expectedStatus)
@@ -105,14 +107,13 @@ func TestHeaderRequests(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		req := internal.Request{
-			Method:  http.MethodGet,
-			Url:     server.URL,
-			Headers: tt.reqHeaders,
+		ur := &ast.UserRequest{
+			HttpMethod: http.MethodGet,
+			Url:        server.URL,
 		}
-		resp, err := req.Execute()
+		resp, err := cli.MakeRequest(ur, tt.reqHeaders)
 		if err != nil {
-			t.Errorf("unexpected err, err: %s", err.Error())
+			t.Fatalf("unexpected err, err: %s", err.Error())
 		}
 		if resp.StatusCode != 200 {
 			t.Errorf("Status: got %q, want %q", resp.StatusCode, 200)
@@ -120,52 +121,6 @@ func TestHeaderRequests(t *testing.T) {
 		headerVal := tt.reqHeaders[keyStr]
 		if string(resp.Body) != fmt.Sprint(headerVal) {
 			t.Errorf("body: got %s, want %v", string(resp.Body), headerVal)
-		}
-	}
-
-}
-
-func TestParamRequests(t *testing.T) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		paramStr := fmt.Sprint(r.URL.Query())
-		w.WriteHeader(200)
-		_, err := w.Write([]byte(paramStr))
-		if err != nil {
-			t.Errorf("unexpected handler err: %s", err.Error())
-		}
-	})
-
-	server := httptest.NewServer(handler)
-	defer server.Close()
-
-	keyStr := "key"
-
-	tests := []struct {
-		reqParams map[string][]string
-	}{
-		{reqParams: map[string][]string{keyStr: {"val1"}}},
-		{reqParams: map[string][]string{keyStr: {"val1", "val2"}}},
-		{reqParams: map[string][]string{keyStr: {"val1", "val2", "val3"}}},
-	}
-
-	for _, tt := range tests {
-		req := internal.Request{
-			Method:  http.MethodGet,
-			Url:     server.URL,
-			Headers: tt.reqParams,
-			Params: internal.Params{
-				Values: tt.reqParams,
-			},
-		}
-		resp, err := req.Execute()
-		if err != nil {
-			t.Errorf("unexpected err, err: %s", err.Error())
-		}
-		if resp.StatusCode != 200 {
-			t.Errorf("Status: got %q, want %q", resp.StatusCode, 200)
-		}
-		if string(resp.Body) != fmt.Sprint(tt.reqParams) {
-			t.Errorf("body: got %s, want %v", string(resp.Body), tt.reqParams)
 		}
 	}
 
