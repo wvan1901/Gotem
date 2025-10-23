@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"strings"
+	"text/template"
 
 	"github.com/wvan1901/Gotem/internal/gohttp/ast"
 	"github.com/wvan1901/Gotem/internal/gohttp/lexer"
@@ -72,7 +73,9 @@ func ListAstRequests(rs []ast.UserRequest) string {
 }
 
 func MakeRequest(ur *ast.UserRequest, extraHeaders map[string][]string) (*response, error) {
-	headers, bodyStr, err := getHeadersAndBody(ur.HttpRequestBody)
+	url, bodyTempl, err := createUrlAndBodyFromTemplate(ur.Url, ur.HttpRequestBody, ur.ExtraLabels)
+
+	headers, bodyStr, err := getHeadersAndBody(bodyTempl)
 	if err != nil {
 		return nil, fmt.Errorf("MakeRequest: reading headers & body: %w", err)
 	}
@@ -83,7 +86,7 @@ func MakeRequest(ur *ast.UserRequest, extraHeaders map[string][]string) (*respon
 	}
 
 	// Create request
-	req, err := http.NewRequest(ur.HttpMethod, ur.Url, bytes.NewBufferString(bodyStr))
+	req, err := http.NewRequest(ur.HttpMethod, url, bytes.NewBufferString(bodyStr))
 	req.Header = httpHeaders
 	for h, hv := range extraHeaders {
 		for _, v := range hv {
@@ -154,4 +157,28 @@ func GetAstRequest(name string, reqs []ast.UserRequest) (*ast.UserRequest, error
 	}
 
 	return nil, errors.New("no request found")
+}
+
+func createUrlAndBodyFromTemplate(urlTempl, bodyTempl string, labels map[string]string) (string, string, error) {
+	t1, err := template.New("url").Parse(urlTempl)
+	if err != nil {
+		return "", "", fmt.Errorf("createUrlAndBodyFromTemplate: url: parse: %w", err)
+	}
+	newUrl := &strings.Builder{}
+	err = t1.Execute(newUrl, labels)
+	if err != nil {
+		return "", "", fmt.Errorf("createUrlAndBodyFromTemplate: url: execute: %w", err)
+	}
+
+	t2, err := template.New("body").Parse(bodyTempl)
+	if err != nil {
+		return "", "", fmt.Errorf("createUrlAndBodyFromTemplate: body: %w", err)
+	}
+	newBody := &strings.Builder{}
+	err = t2.Execute(newBody, labels)
+	if err != nil {
+		return "", "", fmt.Errorf("createUrlAndBodyFromTemplate: body: execute: %w", err)
+	}
+
+	return newUrl.String(), newBody.String(), nil
 }

@@ -14,7 +14,6 @@ const (
 type Flag struct {
 	File         string
 	RequestName  string
-	OverrideUrl  string
 	ListRequests bool
 	ExtraHeaders map[string][]string
 }
@@ -24,7 +23,6 @@ func InitFlags(args []string) (Flag, error) {
 
 	fileName := fs.String("f", DEFAULT_FILE, "Config file path")
 	reqName := fs.String("req-name", "", "API request name to execute")
-	ovrUrl := fs.String("url", "", "Overrides config url")
 	listReq := fs.Bool("ls", false, "Display requests available")
 	h := headers{}
 	fs.Var(&h, "H", "Add header to request, format: <KEY>:<VALUE>")
@@ -37,7 +35,6 @@ func InitFlags(args []string) (Flag, error) {
 	newFlags := Flag{
 		File:         *fileName,
 		RequestName:  *reqName,
-		OverrideUrl:  *ovrUrl,
 		ListRequests: *listReq,
 		ExtraHeaders: h,
 	}
@@ -88,4 +85,4 @@ func (h *headers) Set(value string) error {
 }
 
 // NOTE: Idea for flags
-// in: request as input, (uses no config file)
+// in: request as input, (uses no config file, useful for testing entire program!)

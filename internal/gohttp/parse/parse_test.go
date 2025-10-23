@@ -24,8 +24,8 @@ func checkParserErrors(t *testing.T, p *Parser) {
 func TestParseRequest(t *testing.T) {
 	input := `
 # Some comment!
-@Name=request2
-@Description=submit
+@Name="request2"
+@Description="submit"
 POST http://localhost:42069/submit
 Host: localhost:42069
 Content-Length: 13
@@ -33,12 +33,24 @@ Content-Length: 13
 hello world!
 
 # Comment 2
-@Name=health
-@Description=health-check
-@testLabel=random
+@Name="health"
+@Description="health-check"
+@testLabel="random"
 # Comment before request
 GET http://localhost:42069/health
 Host: localhost:42069
+
+@Name="templ"
+@Description="example"
+@url="http://localhost:8090"
+@header_one = "1"
+@header_two = "2"
+@type_value = "none"
+GET {{.url}}/health
+header: {{.header_one}}
+header: {{.header_two}}
+
+{"type": "{{.type_value}}"}
 `
 	l := lexer.New(input)
 	p := New(l)
@@ -66,7 +78,15 @@ Host: localhost:42069
 			HttpMethod:      "GET",
 			Url:             "http://localhost:42069/health",
 			HttpRequestBody: "Host: localhost:42069\n",
-			ExtraLabels:     map[string]string{"testLabel": "random"},
+			ExtraLabels:     map[string]string{"testlabel": "random"},
+		}},
+		{expectedRequest: ast.UserRequest{
+			Name:            "templ",
+			Description:     "example",
+			HttpMethod:      "GET",
+			Url:             "{{.url}}/health",
+			HttpRequestBody: "header: {{.header_one}}\nheader: {{.header_two}}\n\n{\"type\": \"{{.type_value}}\"}\n",
+			ExtraLabels:     map[string]string{"url": "http://localhost:8090", "header_one": "1", "header_two": "2", "type_value": "none"},
 		}},
 	}
 
@@ -85,8 +105,8 @@ Host: localhost:42069
 func TestParseMissingRequestErrorRequest(t *testing.T) {
 	input := `
 # ...
-@Name=request2
-@Description=submit
+@Name="request2"
+@Description="submit"
 `
 	l := lexer.New(input)
 	p := New(l)
@@ -109,7 +129,7 @@ func TestParseMissingRequestErrorRequest(t *testing.T) {
 func TestParseMissingRequestNameError(t *testing.T) {
 	input := `
 # ...
-@Description=submit
+@Description="submit"
 GET http://localhost:42069/health
 Host: localhost:42069
 `

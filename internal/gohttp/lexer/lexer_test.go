@@ -9,8 +9,8 @@ import (
 func TestNextToken(t *testing.T) {
 	input := `
 # Some comment!
-@Name=request2
-@Description=submit
+@Name="request2"
+@Description="submit"
 POST http://localhost:42069/submit
 Host: localhost:42069
 Content-Length: 13
@@ -18,11 +18,15 @@ Content-Length: 13
 hello world!
 
 # Comment 2
-@Name=health
-@Description=health-check
+@Name="health"
+@Description="health-check"
 # Comment before request
 GET http://localhost:42069/health
 Host: localhost:42069
+
+@Name="templ"
+@url="http://localhost:8090"
+GET {{.url}}/health
 `
 	tests := []struct {
 		expectedType    token.TokenType
@@ -50,7 +54,16 @@ Host: localhost:42069
 		{token.LABEL_VALUE, "health-check", 12},
 		{token.COMMENT, "# Comment before request", 13},
 		{token.HTTP_TEMPLATE, "GET http://localhost:42069/health\nHost: localhost:42069\n", 16},
-		{token.EOF, "", 16},
+		{token.AT_SIGN, "@", 17},
+		{token.LABEL_NAME, "Name", 17},
+		{token.EQUAL, "=", 17},
+		{token.LABEL_VALUE, "templ", 17},
+		{token.AT_SIGN, "@", 18},
+		{token.LABEL_NAME, "url", 18},
+		{token.EQUAL, "=", 18},
+		{token.LABEL_VALUE, "http://localhost:8090", 18},
+		{token.HTTP_TEMPLATE, "GET {{.url}}/health\n", 20},
+		{token.EOF, "", 20},
 	}
 	l := New(input)
 	for i, tt := range tests {

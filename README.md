@@ -26,17 +26,17 @@ All sections will be refering to GoHttp.\
 Labels is gohttp custom symantics.
 A label is a string key value pair. This is the symatics of a label:
 ```
-A LABEL begins on a new line with char '@' followed by optional multiple spaces (OMP), label name, OMP, equals, OMP and label value.
-  @ OMP label-name OMP EQUAL label-value NEW-LINE
+A LABEL begins on a new line with char '@' followed by optional multiple spaces (OMP), label name (A word composed of alphanumeric charecters & underscore), OMP, equals, OMP, double quote, any sequence of chars (except double quote), double quote and label value.
+  @ OMP label-name OMP EQUAL DOUBLE_QUOTE label-value DOUBLE_QUOTE NEW-LINE
 ```
-`NOTE:` Label names are case insensitive they also must be alphanumeric or dash or underscore (ANDU). Label values also must be ANDU.\
-Labels are used to give custom metadata. This allows us to over ride strings in the http request. An example of this being useful is overriding base URL.
+`NOTE:` Label names are case insensitive they also must be alphanumeric or underscore (ANOU). Label values are the literal value between the double quotes.\
+Labels are used to give custom metadata & allows for templating which will be covered later.
 
 ### Requred Labels
 The only requirement needed other than a HTTP request is a name for the request. This is called a request name.
 To give a request a request name we add a label with the label name as 'name' before the request. Ex:
 ```
-@name=request-name
+@name="request-name"
 ```
 Remember label names are case insensitive so the label name for request name could also be `@NAME`.
 
@@ -47,7 +47,7 @@ There is only one custom label so far and that is `description`. This is used by
 Remeber a label is just a string key value pair.
 So to create a custom label just follow the symantics. Here is a example of a custom label:
 ```
-@user-name=gopher4life
+@user-name="gopher4life"
 # The Label name is: user-name
 # The Label value is: gopher4life
 ```
@@ -55,6 +55,9 @@ Gotem has reserved labels so the following label names should not be used as a c
 
 ### Label order
 Labels must follow this order: First label must be the name label. That it we can put any custom labels between name label and HTTP request.
+
+### Label Scope
+All custom labels between the name label and the HTTP request will be avaliable to that request ONLY. There is currently no support for labels being accessed globaly.
 
 ## Request Line
 A request line consist of a request method & target. The request method & target is `REQUIRED`.
@@ -104,10 +107,10 @@ Here are the semantics of a comment:
 A COMMENT begins on a new line with the char '#' followed by any string and ends with a NEW-LINE
   # ANY-STRING
 ```
-`REMEMBER:` a comment cannot be inside label value of a REQUST so the following is invalid:
+`REMEMBER:` a comment cannot be inside label value of a REQUEST so the following is invalid:
 ```
-@Name=request1
-@Description=health check
+@Name="request1"
+@Description="health check"
 GET http://localhost:42069/health
 # This is an INVALID line, comments cannot exist within a request.
 # Gotem will attempt to parse the comment as part of the http request which will fail!
@@ -120,8 +123,8 @@ A valid http request must start with a name label and end with a HTTP request.
 Here is an example of valid file:
 ```
 # Some comment!
-@Name=request2
-@Description=submit
+@Name="request2"
+@Description="submit"
 POST http://localhost:42069/submit
 Host: localhost:42069
 Content-Length: 13
@@ -129,13 +132,36 @@ Content-Length: 13
 hello world!
 
 # Comment 2
-@Name=health
-@Description=health-check
+@Name="health"
+@Description="health-check"
 # Comment before request
 GET http://localhost:42069/health
 Host: localhost:42069
 ```
 `NOTE:` A empty new line is required between headers and body.
+
+## Templates
+Requests will have data that would be useful to override (Example: part of a url).
+To achieve this we can put template string in ONLY the request line and the request body.
+A template value to be replaced will look like this:
+```
+  Template string to be replaced = Double Left Bracket, Period, Custom Label Name, Double Right Bracket
+{{.url}}
+```
+`NOTE:` Remember all custom label names are converted to lowercase, thus when placing the label name inside the template make sure its lowercase!
+
+Here is an example of a request with a template:
+```
+@name="health"
+@url="http://localhost:42069"
+@MSG="Hello World!"
+POST {{.url}}/health
+Host: localhost:42069
+
+{{.msg}}
+
+```
+In this example we have 2 custom labels: url & msg. `url` & `msg` will be replaced with the label value when the request is made.
 
 # FAQ
 *How is this better than a, b, ... z tool?*\

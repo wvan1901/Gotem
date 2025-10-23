@@ -57,10 +57,7 @@ func run(w io.Writer, args []string) error {
 		return err
 	}
 
-	// Override/Add Info
-	if flags.OverrideUrl != "" {
-		req.Url = flags.OverrideUrl
-	}
+	// TODO: Look into Override/Add Custom Labels via flags
 
 	// Make a request
 	resp, err := cli.MakeRequest(req, flags.ExtraHeaders)

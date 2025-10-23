@@ -50,6 +50,13 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.AT_SIGN, l.curChar, l.curLine)
 	case '=':
 		tok = newToken(token.EQUAL, l.curChar, l.curLine)
+	case '"':
+		// Read chars until we reach EOF || \n || "
+		tok.Literal = l.readLabelValue()
+		tok.Type = token.LABEL_VALUE
+		tok.Line = l.curLine
+		l.prevToken = tok
+		return tok
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -67,12 +74,6 @@ func (l *Lexer) NextToken() token.Token {
 			case token.AT_SIGN: // This means string is a label name
 				tok.Literal += l.readAlphaNumeric()
 				tok.Type = token.LABEL_NAME
-				tok.Line = l.curLine
-				l.prevToken = tok
-				return tok
-			case token.EQUAL: // String should be a label value
-				tok.Literal += l.readAlphaNumeric()
-				tok.Type = token.LABEL_VALUE
 				tok.Line = l.curLine
 				l.prevToken = tok
 				return tok
@@ -108,6 +109,19 @@ func (l *Lexer) readComment() string {
 		l.readChar()
 	}
 	return l.input[position:l.curPosition]
+}
+
+func (l *Lexer) readLabelValue() string {
+	l.readChar()
+	position := l.curPosition
+	for !isNewLineOrEof(l.curChar) && l.curChar != '"' {
+		l.readChar()
+	}
+	strVal := l.input[position:l.curPosition]
+	if l.curChar == '"' {
+		l.readChar()
+	}
+	return strVal
 }
 
 func (l *Lexer) readAlphaNumeric() string {
@@ -156,7 +170,7 @@ func (l *Lexer) peekChar() byte {
 }
 
 func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '-'
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
 }
 
 func isUpperCaseLetter(ch byte) bool {

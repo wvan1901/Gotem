@@ -59,7 +59,7 @@ func (p *Parser) parseRequest() *ast.UserRequest {
 		case token.AT_SIGN:
 			lName, lValue, isValidLabel := p.parseLabel()
 			if isValidLabel {
-				switch strings.ToLower(lName) {
+				switch lName {
 				case "name":
 					req.Name = lValue
 				case "description":
@@ -93,7 +93,7 @@ func (p *Parser) parseLabel() (string, string, bool) {
 	if !p.expectPeek(token.LABEL_NAME) {
 		return "", "", false
 	}
-	name := p.curToken.Literal
+	name := strings.ToLower(p.curToken.Literal)
 	if !p.expectPeek(token.EQUAL) {
 		return "", "", false
 	}
